@@ -1,6 +1,8 @@
 import json
 import requests
 import pandas as pd
+import os
+import boto3 # Library to upload files to S3
 us_states_and_capitals = {
     "Alabama": "Montgomery",
     "Alaska": "Juneau",
@@ -53,6 +55,23 @@ us_states_and_capitals = {
     "Wisconsin": "Madison",
     "Wyoming": "Cheyenne"
     }
+
+
+s3_client = boto3.client('s3')
+
+# Function to upload CSV to S3
+def upload_csv_to_s3(file_path, bucket_name, s3_key):
+    if not os.path.isfile(file_path):
+        print(f"The file '{file_path}' does not exist.")
+        return
+    
+    try:
+        # Upload the file to S3
+        s3_client.upload_file(file_path, bucket_name, s3_key)
+        print(f"File '{file_path}' uploaded to S3 bucket '{bucket_name}' as '{s3_key}'.")
+    except Exception as e:
+        print(f"Error uploading file: {e}")
+
 def extract_data(city):
 # API endpoint and key
     API_KEY = "fedd02a3eddd57ec04138f8671cb7e90"
@@ -88,3 +107,4 @@ def extract_data(city):
 if __name__ == "__main__":
     for i in us_states_and_capitals:
         extract_data(i)
+        upload_csv_to_s3(f"./outputs/{i}.csv","weather-data-us-capital",f"{i}.csv")
